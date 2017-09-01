@@ -8,61 +8,58 @@
         </nav>
 
         <div class='row panelRow'>
-            <div class='col-4 panel placeListPanel'>
+            <div class='col-2 panel placeListPanel'>
                 <h1>Places - List</h1>
 
-                <draggable v-model="travelData.places" :options="{group:'people'}" @start="drag=true" @end="drag=false">
-                    <div class="placeListItem" v-bind:key="place" v-for="(place, index) in travelData.places">
-                        <div class="row align-items-center">
-                            <div class="col-2">
-                                {{ index+1 }}
+                <div class="list-group">
+                    <draggable v-model="travelData.places" @start="drag=true" @end="drag=false">
+                        <div v-on:click="listPlaceClicked(place)" v-bind:key="index" v-for="(place, index) in travelData.places" class="list-group-item list-group-item-action flex-column align-items-start placeListItem">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ place.name }}</h5>
+                                <small># {{ index + 1 }}</small>
                             </div>
-                            <div class="col-8">
-                                <h3>{{ place.name }}</h3>
-                                <span class="badge badge-info">ID: {{ place.id }}</span>
-                            </div>
-                            <div class="col-2">
-                                <span class="arrowSpan">></span>
-                            </div>
+                            <p class="mb-1 placeListDescription">{{ place.description }}</p>
+                            <span class="badge badge-info">ID: {{ place.id }}</span>
                         </div>
+                    </draggable>
+                </div>
 
-                    </div>
-                </draggable>
-
-                <button class='btn floating-button btn-info btn-lg' type='submit'>+</button>
+                <button class='btn floating-button btn-info btn-lg' type='submit' v-on:click="listPlaceClicked(null)" >+</button>
             </div>
-            <div class='col-4 panel editPlacePanel'>
+            <div class='col-3 panel editPlacePanel'>
                 <h1>Edit Place</h1>
 
-                <form>
+                <h2 v-if="!selectedPlace">Select a place on the left to edit it!</h2>
+
+                <form v-if="selectedPlace">
                     <div class="form-group">
                         <label for="idInput">ID</label>
-                        <input type="email" class="form-control" id="idInput" placeholder="Enter place ID">
+                        <input type="email" class="form-control" id="idInput" placeholder="Enter place ID" v-model="selectedPlace.id">
                         <small id="emailHelp" class="form-text text-muted">This will uniquely identify the place (e.g. for the URL)</small>
                     </div>
 
                     <div class="form-group">
                         <label for="nameInput">Name</label>
-                        <input type="email" class="form-control" id="nameInput" placeholder="Enter name of the place">
+                        <input type="email" class="form-control" id="nameInput" placeholder="Enter name of the place" v-model="selectedPlace.name">
                         <small id="emailHelp" class="form-text text-muted">Can contain spaces, special characters etc.</small>
                     </div>
 
                     <div class="form-group">
                         <label for="descriptionTextArea">Description</label>
-                        <textarea class="form-control" id="descriptionTextArea" rows="3" placeholder="Enter a description for the place"></textarea>
+                        <textarea class="form-control" id="descriptionTextArea" rows="20" placeholder="Enter a description for the place" v-model="selectedPlace.description"></textarea>
                     </div>
 
                     <div class="form-group">
                         <label for="latitudeInput">Latitude & Longitude</label>
-                        <input type="email" class="form-control" id="latitudeInput" placeholder="Enter latitude">
-                        <input type="email" class="form-control" id="longitudeInput" placeholder="Enter longitude">
+                        <input type="email" class="form-control" id="latitudeInput" placeholder="Enter latitude" v-model="selectedPlace.coordinates.lat">
+                        <input type="email" class="form-control" id="longitudeInput" placeholder="Enter longitude" v-model="selectedPlace.coordinates.lng">
                         <small id="emailHelp" class="form-text text-muted">Of geographic location</small>
                     </div>
                 </form>
 
 
             </div>
-            <div class='col-4 panel placePhotosPanel'>
+            <div class='col-7 panel placePhotosPanel'>
                 <h1>Place - Photos</h1>
 
                 <form id="jsonFile" name="jsonFile" enctype="multipart/form-data" method="post">
@@ -74,6 +71,34 @@
                 </form>
 
                 <br>
+
+                 <h2 v-if="!selectedPlace">Select a place on the left to add/edit photos!</h2>
+
+                <table v-if="selectedPlace" class="table table-striped table-bordered table-sm table">
+                    <thead class="thead-inverse">
+                        <tr>
+                            <th>#</th>
+                            <th>Preview</th>
+                            <th>File Name</th>
+                            <th>Description</th>
+                            <th>Image / Video</th>
+                            <th>Delete</th>
+                        </tr>
+                    </thead>
+                    <!-- <tbody> -->
+                        <draggable :element="'tbody'" v-model="selectedPlace.photos" @start="drag=true" @end="drag=false">
+                            <tr class="tableRowPhoto" v-bind:key="index" v-for="(photo, index) in selectedPlace.photos">
+                                <th scope="row">{{ index + 1 }}</th>
+                                <td>N/A</td>
+                                <td>{{ photo.fileName }}</td>
+                                <td>{{ photo.description }}</td>
+                                <td>Image</td>
+                                <td><button v-on:click="deletePhoto(index)" type="button" class="btn btn-outline-danger">X</button></td>
+                            </tr>
+                        </draggable>
+                    <!-- </tbody> -->
+                </table>
+
                 <br>
 
                 <span>{{ JSON.stringify(this.travelData) }}</span>
@@ -96,13 +121,13 @@
         components: {draggable},
         data () {
             return {
-                selectedPlace: {},
+                selectedPlace: undefined,
                 travelData: {
                     places: [
                         {
                             id: 'sydney',
                             name: 'Sydney',
-                            description: 'Sydney ist die Hauptstadt des australischen Bundesstaates New South Wales und mit 5 Millionen Einwohnern die größte Stadt in Australien. Sydney wurde am 26. Januar 1788 gegründet und ist heute das Industrie-, Handels- und Finanzzentrum Australiens und ein wichtiger Tourismusort. Auch zahlreiche Universitäten, Museen und Galerien befinden sich hier. Sydney ist römisch-katholischer und anglikanischer Erzbischofssitz.',
+                            description: 'Sydney ist cool.',
                             coordinates: {
                                 lat: -33.865143,
                                 lng: 151.209900
@@ -180,12 +205,22 @@
             receivedText: function (e) {
                 const lines = e.target.result
                 this.travelData = JSON.parse(lines)
+            },
+            listPlaceClicked: function (place) {
+                this.selectedPlace = place
+            },
+            deletePhoto: function (index) {
+                this.selectedPlace.photos.splice(index, 1)
             }
         }
     }
 </script>
 
 <style scoped>
+
+.btn {
+    cursor: pointer;
+}
 
 .panelRow {
     height: calc(100vh - 54px);
@@ -210,26 +245,18 @@
 }
 
 .placeListItem {
-    padding: 1em;
-    background-color: rgba(0,0,0,0.2);
-    /* border-radius: 10px; */
-    margin-bottom: 1em;
-
     cursor: pointer;
-
-    transition: all 0.2s ease-out;
-    -webkit-transition: all 0.2s ease-out;
-    -moz-transition: all 0.2s ease-out;
-    -o-transition: all 0.2s ease-out;
 }
 
-.placeListItem:hover {
-    background-color: rgba(0,0,0,0.3);
+.tableRowPhoto {
+    cursor: pointer;
+}
 
-    transition: all 0.2s ease-out;
-    -webkit-transition: all 0.2s ease-out;
-    -moz-transition: all 0.2s ease-out;
-    -o-transition: all 0.2s ease-out;
+.placeListDescription {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 100%;
+    white-space: nowrap;
 }
 
 .arrowSpan {
@@ -241,10 +268,12 @@
     position: relative;
 }
 .editPlacePanel {
-    background-color: #efbfa3;
+    /* background-color: #efbfa3; */
+    border-left: 1px solid #292b2c;
+    border-right: 1px solid #292b2c;
 }
 .placePhotosPanel {
-    background-color: #cdbded;
+    /* background-color: #cdbded; */
     position: relative;
 }
 
