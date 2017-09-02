@@ -4,8 +4,36 @@
         <nav class='navbar navbar-toggleable navbar-inverse bg-inverse'>
             <a class='navbar-brand' href='#'>Travelmap Data Generator</a>
             <button class='btn navar-buttons btn-outline-info' type='submit' v-on:click="saveButtonClick()">Save</button>
-            <button class='btn navar-buttons btn-outline-secondary' type='submit'>Load</button>
+            <button class='btn navar-buttons btn-outline-secondary' type='submit' v-on:click="showLoadModal = true">Load</button>
         </nav>
+
+        <div v-if="showLoadModal" class="modalBackgdrop">
+            <div class="modal fade">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Load .json-File</h5>
+                        <button type="button" class="close" v-on:click="showLoadModal = false">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Please select a .json-File.</p>
+
+                        <form id="jsonFile" name="jsonFile" enctype="multipart/form-data" method="post">
+                            <fieldset>
+                                <input type='file' id='fileinput'>
+                            </fieldset>
+                        </form>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-info" v-on:click="loadFile()">Load</button>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class='row panelRow'>
             <div class='col-2 panel placeListPanel'>
@@ -57,18 +85,9 @@
                     </div>
                 </form>
 
-
             </div>
             <div class='col-7 panel placePhotosPanel'>
                 <h1>Place - Photos</h1>
-
-                <form id="jsonFile" name="jsonFile" enctype="multipart/form-data" method="post">
-                    <fieldset>
-                        <h2>Json File</h2>
-                        <input type='file' id='fileinput'>
-                        <input type='button' id='btnLoad' value='Load' v-on:click="loadFile()">
-                    </fieldset>
-                </form>
 
                 <br>
 
@@ -85,18 +104,16 @@
                             <th>Delete</th>
                         </tr>
                     </thead>
-                    <!-- <tbody> -->
-                        <draggable :element="'tbody'" v-model="selectedPlace.photos" @start="drag=true" @end="drag=false">
-                            <tr class="tableRowPhoto" v-bind:key="index" v-for="(photo, index) in selectedPlace.photos">
-                                <th scope="row">{{ index + 1 }}</th>
-                                <td>N/A</td>
-                                <td>{{ photo.fileName }}</td>
-                                <td>{{ photo.description }}</td>
-                                <td>Image</td>
-                                <td><button v-on:click="deletePhoto(index)" type="button" class="btn btn-outline-danger">X</button></td>
-                            </tr>
-                        </draggable>
-                    <!-- </tbody> -->
+                    <draggable :element="'tbody'" v-model="selectedPlace.photos" @start="drag=true" @end="drag=false">
+                        <tr class="tableRowPhoto" v-bind:key="index" v-for="(photo, index) in selectedPlace.photos">
+                            <th scope="row">{{ index + 1 }}</th>
+                            <td>N/A</td>
+                            <td>{{ photo.fileName }}</td>
+                            <td>{{ photo.description }}</td>
+                            <td>Image</td>
+                            <td><button v-on:click="deletePhoto(index)" type="button" class="btn btn-outline-danger">X</button></td>
+                        </tr>
+                    </draggable>
                 </table>
 
                 <br>
@@ -122,49 +139,8 @@
         data () {
             return {
                 selectedPlace: undefined,
-                travelData: {
-                    places: [
-                        {
-                            id: 'sydney',
-                            name: 'Sydney',
-                            description: 'Sydney ist cool.',
-                            coordinates: {
-                                lat: -33.865143,
-                                lng: 151.209900
-                            },
-                            photos: [
-                                {
-                                    fileName: 'DSC03096.jpg',
-                                    description: 'Waterfall along the Kuranda Scenic Railway Trail'
-                                },
-                                {
-                                    fileName: 'DSC00067.jpg',
-                                    description: 'Sydney Opera House at dusk'
-                                },
-                                {
-                                    fileName: 'DSC00120.jpg',
-                                    description: 'Bondi Bay'
-                                },
-                                {
-                                    fileName: 'DSC00012.jpg',
-                                    description: 'St Marys Cathedral'
-                                },
-                                {
-                                    fileName: 'DSC09946.jpg',
-                                    description: 'Sydney Opera House Roof'
-                                },
-                                {
-                                    fileName: 'DSC09906.jpg',
-                                    description: 'Harbour Bridge'
-                                },
-                                {
-                                    fileName: 'DSC_2038.JPG',
-                                    description: 'DSC_2038.JPG'
-                                }
-                            ]
-                        }
-                    ]
-                }
+                showLoadModal: false,
+                travelData: {}
             }
         },
         created: function () {
@@ -200,6 +176,8 @@
                     fileReader = new FileReader()
                     fileReader.onload = this.receivedText
                     fileReader.readAsText(file)
+
+                    this.showLoadModal = false
                 }
             },
             receivedText: function (e) {
@@ -217,6 +195,29 @@
 </script>
 
 <style scoped>
+
+.fade {
+    opacity: 1;
+    background-color: rgba(0,0,0,0) !important;
+}
+
+.modal {
+    position: absolute;
+    top: calc(50% - 200px);
+    left: 0;
+    display: inline-block;
+    overflow: visible;
+}
+
+.modalBackgdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.75);
+    z-index: 1000;
+}
 
 .btn {
     cursor: pointer;
