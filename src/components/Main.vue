@@ -37,7 +37,7 @@
 
         <div class='row panelRow'>
             <div class='col-2 panel placeListPanel'>
-                <h1>Places - List</h1>
+                <h3>Places - List</h3>
 
                 <div class="list-group">
                     <draggable v-model="travelData.places" @start="drag=true" @end="drag=false">
@@ -55,9 +55,9 @@
                 <button class='btn floating-button btn-info btn-lg' type='submit' v-on:click="listPlaceClicked(null)" >+</button>
             </div>
             <div class='col-3 panel editPlacePanel'>
-                <h1>Edit Place</h1>
+                <h3>Edit Place</h3>
 
-                <h2 v-if="!selectedPlace">Select a place on the left to edit it!</h2>
+                <h6 v-if="!selectedPlace">Select a place on the left to edit it!</h6>
 
                 <form v-if="selectedPlace">
                     <div class="form-group">
@@ -87,41 +87,63 @@
 
             </div>
             <div class='col-7 panel placePhotosPanel'>
-                <h1>Place - Photos</h1>
+                <h3>Place - Photos</h3>
 
-                <br>
+                <h6 v-if="!selectedPlace">Select a place on the left to add/edit photos!</h6>
 
-                 <h2 v-if="!selectedPlace">Select a place on the left to add/edit photos!</h2>
+                <div v-if="selectedPlace" class="photoTableContainer">
+                    <table v-if="selectedPlace" class="table table-striped table-bordered table-sm">
+                        <thead class="thead-inverse">
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center">Preview</th>
+                                <th class="text-center">File Name</th>
+                                <th class="text-center">Description</th>
+                                <th class="text-center">Image / Video</th>
+                                <th class="text-center">Delete</th>
+                            </tr>
+                        </thead>
+                        <draggable :element="'tbody'" v-model="selectedPlace.photos" @start="drag=true" @end="drag=false">
+                            <tr class="tableRowPhoto" v-bind:key="index" v-for="(photo, index) in selectedPlace.photos">
+                                <td class="text-center">{{ index + 1 }}</th>
+                                <td class="text-center">N/A</td>
+                                <td class="text-center">{{ photo.fileName }}</td>
+                                <td class="text-center">
+                                    <input type="email" class="form-control" id="idInput" placeholder="Enter description" v-model="photo.description">
+                                </td>
 
-                <table v-if="selectedPlace" class="table table-striped table-bordered table-sm table">
-                    <thead class="thead-inverse">
-                        <tr>
-                            <th>#</th>
-                            <th>Preview</th>
-                            <th>File Name</th>
-                            <th>Description</th>
-                            <th>Image / Video</th>
-                            <th>Delete</th>
-                        </tr>
-                    </thead>
-                    <draggable :element="'tbody'" v-model="selectedPlace.photos" @start="drag=true" @end="drag=false">
-                        <tr class="tableRowPhoto" v-bind:key="index" v-for="(photo, index) in selectedPlace.photos">
-                            <th scope="row">{{ index + 1 }}</th>
-                            <td>N/A</td>
-                            <td>{{ photo.fileName }}</td>
-                            <td>{{ photo.description }}</td>
-                            <td>Image</td>
-                            <td><button v-on:click="deletePhoto(index)" type="button" class="btn btn-outline-danger">X</button></td>
-                        </tr>
-                    </draggable>
-                </table>
+                                <td class="text-center">
+                                    <select class="custom-select" v-model="photo.type">
+                                        <option>image</option>
+                                        <option>video</option>
+                                    </select>
+                                </td>
 
-                <br>
-
-                <span>{{ JSON.stringify(this.travelData) }}</span>
-                <div class='photoDropOff'>
-                    <h4 class='photoDropOffText'>Drag & Drop Pictures/Videos here to add them to this place!</h4>
+                                <td class="text-center">
+                                    <button v-on:click="deletePhoto(index)" type="button" class="btn btn-outline-danger">X</button>
+                                </td>
+                            </tr>
+                        </draggable>
+                    </table>
                 </div>
+
+                <!-- <span>{{ JSON.stringify(this.travelData) }}</span> -->
+
+                <!-- <div class='photoDropOff'>
+                    <h4 class='photoDropOffText'>Drag & Drop Pictures/Videos here to add them to this place!</h4>
+                </div> -->
+                <div class="Image-input">
+                    <div class="Image-input__image-wrapper">
+                        <i v-show="!imageSrc" class="icon fa fa-picture-o"></i>
+                        <img v-show="imageSrc" class="Image-input__image" :src="imageSrc">
+                    </div>
+
+                    <div class="Image-input__input-wrapper">
+                        Choose
+                        <input @change="previewThumbnail" class="Image-input__input" name="thumbnail" type="file">
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -138,6 +160,7 @@
         components: {draggable},
         data () {
             return {
+                imageSrc: undefined,
                 selectedPlace: undefined,
                 showLoadModal: false,
                 travelData: {}
@@ -189,12 +212,106 @@
             },
             deletePhoto: function (index) {
                 this.selectedPlace.photos.splice(index, 1)
+            },
+            previewThumbnail: function (event) {
+                const input = event.target
+
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader()
+
+                    const vm = this
+
+                    reader.onload = function (e) {
+                        vm.imageSrc = e.target.result
+                    }
+
+                    reader.readAsDataURL(input.files[0])
+                }
             }
         }
     }
 </script>
 
 <style scoped>
+
+.Image-input {
+  display: flex;
+}
+
+.Image-input__image-wrapper {
+  flex-basis: 80%;
+  height: 150px;
+  flex: 2.5;
+  border-radius: 1px;
+  margin-right: 10px;
+  overflow-y: hidden;
+  border-radius: 1px;
+  background: #eee;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.Image-input__image-wrapper > .icon {
+  color: #ccc;
+  font-size: 50px;
+  cursor: default;
+}
+
+.Image-input__image {
+  max-width: 100%;
+  border-radius: 1px;
+}
+
+.Image-input__input-wrapper {
+  overflow: hidden;
+  position: relative;
+  background: #eee;
+  border-radius: 1px;
+  float: left;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: rgba(0, 0, 0, 0.2);
+  transition: 0.4s background;
+}
+
+.Image-input__input-wrapper:hover {
+  background: #e0e0e0;
+}
+
+.Image-input__input {
+  cursor: inherit;
+  display: block;
+  font-size: 999px;
+  min-height: 100%;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  text-align: right;
+  top: 0;
+  cursor: pointer;
+}
+
+h3 {
+    margin-bottom: 0.5em;
+}
+
+.photoTableContainer {
+    /* background-color: red; */
+    width: 100%;
+    height: calc(100% - 19em);
+    overflow-y: scroll;
+}
+
+.table > thead > tr > th {
+     vertical-align: middle;
+}
+
+.table > tbody > tr > td {
+     vertical-align: middle;
+}
 
 .fade {
     opacity: 1;
