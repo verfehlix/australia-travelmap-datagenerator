@@ -62,13 +62,13 @@
                 <form v-if="selectedPlace">
                     <div class="form-group">
                         <label for="idInput">ID</label>
-                        <input type="email" class="form-control" id="idInput" placeholder="Enter place ID" v-model="selectedPlace.id">
+                        <input type="text" class="form-control" id="idInput" placeholder="Enter place ID" v-model="selectedPlace.id">
                         <small id="emailHelp" class="form-text text-muted">This will uniquely identify the place (e.g. for the URL)</small>
                     </div>
 
                     <div class="form-group">
                         <label for="nameInput">Name</label>
-                        <input type="email" class="form-control" id="nameInput" placeholder="Enter name of the place" v-model="selectedPlace.name">
+                        <input type="text" class="form-control" id="nameInput" placeholder="Enter name of the place" v-model="selectedPlace.name">
                         <small id="emailHelp" class="form-text text-muted">Can contain spaces, special characters etc.</small>
                     </div>
 
@@ -79,8 +79,8 @@
 
                     <div class="form-group">
                         <label for="latitudeInput">Latitude & Longitude</label>
-                        <input type="email" class="form-control" id="latitudeInput" placeholder="Enter latitude" v-model="selectedPlace.coordinates.lat">
-                        <input type="email" class="form-control" id="longitudeInput" placeholder="Enter longitude" v-model="selectedPlace.coordinates.lng">
+                        <input type="text" class="form-control" id="latitudeInput" placeholder="Enter latitude" v-model="selectedPlace.coordinates.lat">
+                        <input type="text" class="form-control" id="longitudeInput" placeholder="Enter longitude" v-model="selectedPlace.coordinates.lng">
                         <small id="emailHelp" class="form-text text-muted">Of geographic location</small>
                     </div>
                 </form>
@@ -106,10 +106,14 @@
                         <draggable :element="'tbody'" v-model="selectedPlace.photos" @start="drag=true" @end="drag=false">
                             <tr class="tableRowPhoto" v-bind:key="index" v-for="(photo, index) in selectedPlace.photos">
                                 <td class="text-center">{{ index + 1 }}</th>
-                                <td class="text-center">N/A</td>
+                                <td class="text-center">
+                                    <span v-if="!photo.base64data">N/A</span>
+                                    <img v-if="photo.base64data" v-bind:src="photo.base64data"></img>
+
+                                </td>
                                 <td class="text-center">{{ photo.fileName }}</td>
                                 <td class="text-center">
-                                    <input type="email" class="form-control" id="idInput" placeholder="Enter description" v-model="photo.description">
+                                    <input type="text" class="form-control" id="idInput" placeholder="Enter description" v-model="photo.description">
                                 </td>
 
                                 <td class="text-center">
@@ -133,14 +137,14 @@
                     <h4 class='photoDropOffText'>Drag & Drop Pictures/Videos here to add them to this place!</h4>
                 </div> -->
                 <div class="Image-input">
-                    <div class="Image-input__image-wrapper">
-                        <i v-show="!imageSrc" class="icon fa fa-picture-o"></i>
+                    <!-- <div class="Image-input__image-wrapper">
+                        <span v-show="!imageSrc">No preview available</span>
                         <img v-show="imageSrc" class="Image-input__image" :src="imageSrc">
-                    </div>
+                    </div> -->
 
                     <div class="Image-input__input-wrapper">
                         Choose
-                        <input @change="previewThumbnail" class="Image-input__input" name="thumbnail" type="file">
+                        <input @change="previewThumbnail" class="Image-input__input" name="thumbnail" type="file" multiple>
                     </div>
                 </div>
 
@@ -215,18 +219,52 @@
             },
             previewThumbnail: function (event) {
                 const input = event.target
+                // debugger
 
-                if (input.files && input.files[0]) {
+                for (let i = 0; i < input.files.length; i++) {
+                    const file = input.files[i]
+
                     const reader = new FileReader()
 
                     const vm = this
 
                     reader.onload = function (e) {
-                        vm.imageSrc = e.target.result
+                        const newImg = document.createElement('img')
+                        newImg.src = e.target.result
+
+                        newImg.onload = function () {
+                            const imgData = vm.resizedataURL(newImg, 100, 100)
+                            vm.selectedPlace.photos.push({
+                                fileName: file.name,
+                                description: file.name,
+                                type: 'image',
+                                base64data: imgData
+                            })
+                        }
                     }
 
-                    reader.readAsDataURL(input.files[0])
+                    reader.readAsDataURL(file)
                 }
+            },
+            resizedataURL: function (img, maxWidth, maxHeight) {
+                const canvas = document.createElement('canvas')
+                const ctx = canvas.getContext('2d')
+
+                if (img.width > img.height) {
+                    const verh = img.height / img.width
+                    canvas.width = 100
+                    canvas.height = 100 * verh
+                }
+
+                if (img.height > img.width) {
+                    const verh = img.width / img.height
+                    canvas.width = 100 * verh
+                    canvas.height = 100
+                }
+
+                ctx.drawImage(img, 0, 0, maxWidth, maxHeight)
+
+                return canvas.toDataURL()
             }
         }
     }
