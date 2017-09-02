@@ -52,7 +52,7 @@
                     </draggable>
                 </div>
 
-                <button class='btn floating-button btn-info btn-lg' type='submit' v-on:click="listPlaceClicked(null)" >+</button>
+                <button class='btn floating-button btn-info btn-lg' type='submit' v-on:click="createNewListPlace()" >+</button>
             </div>
             <div class='col-3 panel editPlacePanel'>
                 <h3>Edit Place</h3>
@@ -265,6 +265,18 @@
                 ctx.drawImage(img, 0, 0, maxWidth, maxHeight)
 
                 return canvas.toDataURL()
+            },
+            createNewListPlace: function () {
+                this.travelData.places.push({
+                    id: '',
+                    name: '',
+                    description: '',
+                    coordinates: {
+                        lat: null,
+                        lng: null
+                    },
+                    photos: []
+                })
             }
         }
     }
