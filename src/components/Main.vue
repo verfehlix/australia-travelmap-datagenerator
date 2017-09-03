@@ -39,17 +39,21 @@
             <div class='col-2 panel placeListPanel'>
                 <h3>Places - List</h3>
 
-                <div class="list-group">
-                    <draggable v-model="travelData.places" @start="drag=true" @end="drag=false">
-                        <div v-on:click="listPlaceClicked(place)" v-bind:key="index" v-for="(place, index) in travelData.places" class="list-group-item list-group-item-action flex-column align-items-start placeListItem">
-                            <div class="d-flex w-100 justify-content-between">
-                                <h5 class="mb-1">{{ place.name }}</h5>
-                                <small># {{ index + 1 }}</small>
+                <h6 v-if="travelData.places.length === 0">Load a .json-File or add a new place via the button at the bottom!</h6>
+
+                <div class="placeListWrapper">
+                    <div class="list-group">
+                        <draggable v-model="travelData.places" @start="drag=true" @end="drag=false">
+                            <div v-on:click="listPlaceClicked(place)" v-bind:key="index" v-for="(place, index) in travelData.places" class="list-group-item list-group-item-action flex-column align-items-start placeListItem">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ place.name }}</h5>
+                                    <small># {{ index + 1 }}</small>
+                                </div>
+                                <p class="mb-1 placeListDescription">{{ place.description }}</p>
+                                <span class="badge badge-info">ID: {{ place.id }}</span>
                             </div>
-                            <p class="mb-1 placeListDescription">{{ place.description }}</p>
-                            <span class="badge badge-info">ID: {{ place.id }}</span>
-                        </div>
-                    </draggable>
+                        </draggable>
+                    </div>
                 </div>
 
                 <button class='btn floating-button btn-info btn-lg' type='submit' v-on:click="createNewListPlace()" >+</button>
@@ -83,6 +87,11 @@
                         <input type="text" class="form-control" id="longitudeInput" placeholder="Enter longitude" v-model="selectedPlace.coordinates.lng">
                         <small id="emailHelp" class="form-text text-muted">Of geographic location</small>
                     </div>
+
+                    <br>
+                    <br>
+                    <button type="button" class="btn btn-block btn-outline-danger" v-on:click="deleteSelectedPlace()">Delete this place</button>
+
                 </form>
 
             </div>
@@ -136,15 +145,10 @@
                 <!-- <div class='photoDropOff'>
                     <h4 class='photoDropOffText'>Drag & Drop Pictures/Videos here to add them to this place!</h4>
                 </div> -->
-                <div class="Image-input">
-                    <!-- <div class="Image-input__image-wrapper">
-                        <span v-show="!imageSrc">No preview available</span>
-                        <img v-show="imageSrc" class="Image-input__image" :src="imageSrc">
-                    </div> -->
-
-                    <div class="Image-input__input-wrapper">
-                        Choose
-                        <input @change="previewThumbnail" class="Image-input__input" name="thumbnail" type="file" multiple>
+                <div v-if="selectedPlace" class="photoDrop">
+                    <div class="photoDropInputWrapper">
+                        <span>Select or Drag/Drop Photos & Videos <b>here</b> to add them to this place!</span>
+                        <input @change="handlePhotoDrop" class="photoDropInput" type="file" multiple>
                     </div>
                 </div>
 
@@ -167,7 +171,9 @@
                 imageSrc: undefined,
                 selectedPlace: undefined,
                 showLoadModal: false,
-                travelData: {}
+                travelData: {
+                    places: []
+                }
             }
         },
         created: function () {
@@ -193,7 +199,7 @@
 
                 const input = document.getElementById('fileinput')
                 if (!input) {
-                    alert("Um, couldn't find the fileinput element.")
+                    alert("Couldn't find the fileinput element.")
                 } else if (!input.files) {
                     alert("This browser doesn't seem to support the `files` property of file inputs.")
                 } else if (!input.files[0]) {
@@ -217,9 +223,8 @@
             deletePhoto: function (index) {
                 this.selectedPlace.photos.splice(index, 1)
             },
-            previewThumbnail: function (event) {
+            handlePhotoDrop: function (event) {
                 const input = event.target
-                // debugger
 
                 for (let i = 0; i < input.files.length; i++) {
                     const file = input.files[i]
@@ -252,12 +257,16 @@
 
                 if (img.width > img.height) {
                     const verh = img.height / img.width
+                    img.width = 100
+                    img.height = 100 * verh
                     canvas.width = 100
                     canvas.height = 100 * verh
                 }
 
                 if (img.height > img.width) {
                     const verh = img.width / img.height
+                    img.width = 100 * verh
+                    img.height = 100
                     canvas.width = 100 * verh
                     canvas.height = 100
                 }
@@ -277,6 +286,18 @@
                     },
                     photos: []
                 })
+            },
+            deleteSelectedPlace: function () {
+                for (let i = 0; i < this.travelData.places.length; i++) {
+                    const place = this.travelData.places[i]
+
+                    if (place === this.selectedPlace) {
+                        this.travelData.places.splice(i, 1)
+
+                        break
+                    }
+                }
+                this.selectedPlace = undefined
             }
         }
     }
@@ -284,36 +305,14 @@
 
 <style scoped>
 
-.Image-input {
+.photoDrop {
   display: flex;
+  height: 10em;
+  padding-top: 1em;
+  border-radius: 40px;
 }
 
-.Image-input__image-wrapper {
-  flex-basis: 80%;
-  height: 150px;
-  flex: 2.5;
-  border-radius: 1px;
-  margin-right: 10px;
-  overflow-y: hidden;
-  border-radius: 1px;
-  background: #eee;
-  justify-content: center;
-  align-items: center;
-  display: flex;
-}
-
-.Image-input__image-wrapper > .icon {
-  color: #ccc;
-  font-size: 50px;
-  cursor: default;
-}
-
-.Image-input__image {
-  max-width: 100%;
-  border-radius: 1px;
-}
-
-.Image-input__input-wrapper {
+.photoDropInputWrapper {
   overflow: hidden;
   position: relative;
   background: #eee;
@@ -325,13 +324,15 @@
   align-items: center;
   color: rgba(0, 0, 0, 0.2);
   transition: 0.4s background;
+  border-radius: 40px;
+  border: 0.3em dashed white;
 }
 
-.Image-input__input-wrapper:hover {
+.photoDropInputWrapper:hover {
   background: #e0e0e0;
 }
 
-.Image-input__input {
+.photoDropInput {
   cursor: inherit;
   display: block;
   font-size: 999px;
@@ -390,6 +391,11 @@ h3 {
     cursor: pointer;
 }
 
+.placeListWrapper {
+    overflow-y: auto;
+    max-height: calc(100vh - 15em);
+}
+
 .panelRow {
     height: calc(100vh - 54px);
     width: 100%;
@@ -409,7 +415,8 @@ h3 {
 .floating-button {
     position: absolute;
     bottom: 2em;
-    right: 2em;
+    left: 10%;
+    width: 80%;
 }
 
 .placeListItem {
