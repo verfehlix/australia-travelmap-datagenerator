@@ -106,6 +106,7 @@
             </div>
             <div class='col-7 panel placePhotosPanel'>
                 <h3>Place - Photos</h3>
+                <small class="text-muted">Tip: Drag the numbers to re-order the photos!</small>
 
                 <h6 v-if="!selectedPlace">Select a place on the left to add/edit photos!</h6>
 
@@ -121,9 +122,9 @@
                                 <th class="text-center">Delete</th>
                             </tr>
                         </thead>
-                        <draggable :element="'tbody'" v-model="selectedPlace.photos" @start="drag=true" @end="drag=false">
+                        <draggable :options="{handle:'.draghere'}" :element="'tbody'" v-model="selectedPlace.photos" @start="drag=true" @end="drag=false">
                             <tr class="tableRowPhoto" v-bind:key="index" v-for="(photo, index) in selectedPlace.photos">
-                                <td class="text-center">{{ index + 1 }}</th>
+                                <td class="text-center draghere">{{ index + 1 }}</th>
                                 <td class="text-center">
                                     <span v-if="!photo.base64data">N/A</span>
                                     <img v-if="photo.base64data" v-bind:src="photo.base64data"></img>
@@ -441,7 +442,7 @@ h3 {
     cursor: pointer;
 }
 
-.tableRowPhoto {
+.draghere {
     cursor: pointer;
 }
 
