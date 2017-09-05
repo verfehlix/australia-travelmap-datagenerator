@@ -270,23 +270,18 @@
                 const canvas = document.createElement('canvas')
                 const ctx = canvas.getContext('2d')
 
-                if (img.width > img.height) {
-                    const verh = img.height / img.width
-                    img.width = 100
-                    img.height = 100 * verh
-                    canvas.width = 100
-                    canvas.height = 100 * verh
-                }
+                const biggerSide = img.width > img.height ? 'width' : 'height'
+                const smallerSide = img.width > img.height ? 'height' : 'width'
 
-                if (img.height > img.width) {
-                    const verh = img.width / img.height
-                    img.width = 100 * verh
-                    img.height = 100
-                    canvas.width = 100 * verh
-                    canvas.height = 100
-                }
+                const verh = img[smallerSide] / img[biggerSide]
 
-                ctx.drawImage(img, 0, 0, maxWidth, maxHeight)
+                img[biggerSide] = 100
+                img[smallerSide] = 100 * verh
+
+                canvas[biggerSide] = 100
+                canvas[smallerSide] = 100 * verh
+
+                ctx.drawImage(img, 0, 0, img.width, img.height)
 
                 return canvas.toDataURL()
             },
