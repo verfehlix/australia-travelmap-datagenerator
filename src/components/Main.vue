@@ -65,34 +65,34 @@
 
                 <form v-if="selectedPlace">
                     <div class="form-group">
-                        <label for="idInput">ID</label>
+                        <label for="idInput"><b>ID</b></label>
                         <input type="text" class="form-control" id="idInput" placeholder="Enter place ID" v-model="selectedPlace.id">
-                        <small id="emailHelp" class="form-text text-muted">This will uniquely identify the place (e.g. for the URL)</small>
+                        <small id="emailHelp" class="form-text text-muted">This will uniquely identify the place (e.g. for the URL), should not contain special characters etc.</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="nameInput">Name</label>
+                        <label for="nameInput"><b>Name</b></label>
                         <input type="text" class="form-control" id="nameInput" placeholder="Enter name of the place" v-model="selectedPlace.name">
                         <small id="emailHelp" class="form-text text-muted">Can contain spaces, special characters etc.</small>
                     </div>
 
                     <div class="form-group">
-                        <label for="descriptionTextArea">Description</label>
+                        <label for="descriptionTextArea"><b>Description</b></label>
                         <textarea class="form-control" id="descriptionTextArea" rows="20" placeholder="Enter a description for the place" v-model="selectedPlace.description"></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="latitudeInput">Latitude & Longitude</label>
+                        <label for="latitudeInput"><b>Latitude & Longitude</b></label>
                         <input type="number" class="form-control" id="latitudeInput" placeholder="Enter latitude" v-model="selectedPlace.coordinates.lat">
                         <br>
                         <input type="number" class="form-control" id="longitudeInput" placeholder="Enter longitude" v-model="selectedPlace.coordinates.lng">
-                        <small id="emailHelp" class="form-text text-muted">Of geographic location</small>
+                        <small id="emailHelp" class="form-text text-muted">Geographic location</small>
                     </div>
 
                     <br>
 
                     <div class="form-group">
-                        <label for="gmapsAutoComplete">Autocomplete via Google Maps</label>
+                        <label for="gmapsAutoComplete"><b>Autocomplete via Google Maps</b></label>
                         <gmap-autocomplete class="form-control" id="gmapsAutoComplete"
                             @place_changed="setPlace">
                         </gmap-autocomplete>
@@ -173,10 +173,7 @@
     Vue.use(VueGoogleMaps, {
         load: {
             key: 'AIzaSyCYDsC1hsS1WuBBWceVWhba3OuatvZ79qI',
-            libraries: 'places' // This is required if you use the Autocomplete plugin
-            // OR: libraries: 'places,drawing'
-            // OR: libraries: 'places,drawing,visualization'
-            // (as you require)
+            libraries: 'places'
         }
     })
 
@@ -379,7 +376,7 @@ h3 {
     /* background-color: red; */
     width: 100%;
     height: calc(100% - 19em);
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .table > thead > tr > th {
@@ -434,8 +431,8 @@ h3 {
 }
 
 .navar-buttons {
-    margin-left: 4em;
-    margin-right: 4em;
+    margin-left: 2em;
+    margin-right: 1em;
 }
 
 .floating-button {
@@ -470,8 +467,8 @@ h3 {
 }
 .editPlacePanel {
     /* background-color: #efbfa3; */
-    border-left: 1px solid #292b2c;
-    border-right: 1px solid #292b2c;
+    border-left: 1px solid rgba(0, 0, 0, 0.25);
+    border-right: 1px solid rgba(0, 0, 0, 0.25);
     overflow-y: auto;
     padding-bottom: 1em;
 }
