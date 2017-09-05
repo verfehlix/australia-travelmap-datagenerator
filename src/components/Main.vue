@@ -41,10 +41,10 @@
 
                 <h6 v-if="travelData.places.length === 0">Load a .json-File or add a new place via the button at the bottom!</h6>
 
-                <div class="placeListWrapper">
+                <div  class="placeListWrapper">
                     <div class="list-group">
-                        <draggable v-model="travelData.places" @start="drag=true" @end="drag=false">
-                            <div v-on:click="listPlaceClicked(place)" v-bind:key="index" v-for="(place, index) in travelData.places" class="list-group-item list-group-item-action flex-column align-items-start placeListItem">
+                        <draggable id="draggablePlaceList" v-model="travelData.places" @start="drag=true" @end="drag=false">
+                            <div v-bind:ref="'listItem' + index" v-on:click="listPlaceClicked(place, index)" v-bind:key="index" v-for="(place, index) in travelData.places" class="list-group-item list-group-item-action flex-column align-items-start placeListItem">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">{{ place.name }}</h5>
                                     <small># {{ index + 1 }}</small>
@@ -93,8 +93,11 @@
 
                     <div class="form-group">
                         <label for="gmapsAutoComplete"><b>Autocomplete via Google Maps</b></label>
-                        <gmap-autocomplete class="form-control" id="gmapsAutoComplete"
-                            @place_changed="setPlace">
+                        <gmap-autocomplete
+                            id="gmapsAutoComplete"
+                            class="form-control"
+                            @place_changed="setPlace"
+                        >
                         </gmap-autocomplete>
                         <small id="emailHelp" class="form-text text-muted">Type in the place and Google Maps will try to fill in as much information as possible automatically!</small>
                     </div>
@@ -106,7 +109,7 @@
             </div>
             <div class='col-7 panel placePhotosPanel'>
                 <h3>Place - Photos</h3>
-                <small class="text-muted">Tip: Drag the numbers to re-order the photos!</small>
+                <small v-if="selectedPlace" class="text-muted">Tip: Drag the numbers to re-order the photos!</small>
 
                 <h6 v-if="!selectedPlace">Select a place on the left to add/edit photos!</h6>
 
@@ -197,11 +200,12 @@
         },
         methods: {
             saveButtonClick: function () {
-                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.travelData, null, 4))
-                const dlAnchorElem = document.getElementById('downloadAnchorElem')
-                dlAnchorElem.setAttribute('href', dataStr)
-                dlAnchorElem.setAttribute('download', 'travelData.json')
-                dlAnchorElem.click()
+                // const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.travelData, null, 4))
+                // const dlAnchorElem = document.getElementById('downloadAnchorElem')
+                // dlAnchorElem.setAttribute('href', dataStr)
+                // dlAnchorElem.setAttribute('download', 'travelData.json')
+                // dlAnchorElem.click()
+                debugger
             },
             loadFile: function () {
                 let file
@@ -233,8 +237,9 @@
                 const lines = e.target.result
                 this.travelData = JSON.parse(lines)
             },
-            listPlaceClicked: function (place) {
+            listPlaceClicked: function (place, index) {
                 this.selectedPlace = place
+                this.handlePlaceListSelection(index)
             },
             deletePhoto: function (index) {
                 this.selectedPlace.photos.splice(index, 1)
@@ -296,19 +301,46 @@
                         lng: null
                     },
                     photos: []
+                }) - 1
+
+                this.$nextTick(function () {
+                    this.handlePlaceListSelection(newItemIndex)
+
+                    this.$refs['listItem' + newItemIndex][0].click()
                 })
             },
+            handlePlaceListSelection: function (selectedIndex) {
+                this.$refs['listItem' + selectedIndex][0].classList.add('active')
+
+                for (const ref in this.$refs) {
+                    if (ref.indexOf('listItem') !== -1 && ref !== 'listItem' + selectedIndex) {
+                        if (this.$refs[ref].length > 0) {
+                            this.$refs[ref][0].classList.remove('active')
+                        }
+                    }
+                }
+            },
             deleteSelectedPlace: function () {
+                let itemBeforeIndex
                 for (let i = 0; i < this.travelData.places.length; i++) {
                     const place = this.travelData.places[i]
 
                     if (place === this.selectedPlace) {
                         this.travelData.places.splice(i, 1)
-
+                        itemBeforeIndex = i - 1
                         break
                     }
                 }
-                this.selectedPlace = undefined
+
+                if (itemBeforeIndex >= 0) {
+                    this.handlePlaceListSelection(itemBeforeIndex)
+                    this.selectedPlace = this.travelData.places[itemBeforeIndex]
+                } else if (this.travelData.places.length > 0) {
+                    this.handlePlaceListSelection(0)
+                    this.selectedPlace = this.travelData.places[0]
+                } else {
+                    this.selectedPlace = undefined
+                }
             },
             setPlace: function (place) {
                 this.selectedPlace.id = place.name.toLowerCase().replace(/ /g, '')
