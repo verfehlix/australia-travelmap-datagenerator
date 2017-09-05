@@ -83,15 +83,24 @@
 
                     <div class="form-group">
                         <label for="latitudeInput">Latitude & Longitude</label>
-                        <input type="text" class="form-control" id="latitudeInput" placeholder="Enter latitude" v-model="selectedPlace.coordinates.lat">
-                        <input type="text" class="form-control" id="longitudeInput" placeholder="Enter longitude" v-model="selectedPlace.coordinates.lng">
+                        <input type="number" class="form-control" id="latitudeInput" placeholder="Enter latitude" v-model="selectedPlace.coordinates.lat">
+                        <br>
+                        <input type="number" class="form-control" id="longitudeInput" placeholder="Enter longitude" v-model="selectedPlace.coordinates.lng">
                         <small id="emailHelp" class="form-text text-muted">Of geographic location</small>
                     </div>
 
                     <br>
+
+                    <div class="form-group">
+                        <label for="gmapsAutoComplete">Autocomplete via Google Maps</label>
+                        <gmap-autocomplete class="form-control" id="gmapsAutoComplete"
+                            @place_changed="setPlace">
+                        </gmap-autocomplete>
+                        <small id="emailHelp" class="form-text text-muted">Type in the place and Google Maps will try to fill in as much information as possible automatically!</small>
+                    </div>
+
                     <br>
                     <button type="button" class="btn btn-block btn-outline-danger" v-on:click="deleteSelectedPlace()">Delete this place</button>
-
                 </form>
 
             </div>
@@ -142,9 +151,6 @@
 
                 <!-- <span>{{ JSON.stringify(this.travelData) }}</span> -->
 
-                <!-- <div class='photoDropOff'>
-                    <h4 class='photoDropOffText'>Drag & Drop Pictures/Videos here to add them to this place!</h4>
-                </div> -->
                 <div v-if="selectedPlace" class="photoDrop">
                     <div class="photoDropInputWrapper">
                         <span>Select or Drag/Drop Photos & Videos <b>here</b> to add them to this place!</span>
@@ -160,7 +166,19 @@
 </template>
 
 <script>
+    import Vue from 'vue'
     import draggable from 'vuedraggable'
+    import * as VueGoogleMaps from 'vue2-google-maps'
+
+    Vue.use(VueGoogleMaps, {
+        load: {
+            key: 'AIzaSyCYDsC1hsS1WuBBWceVWhba3OuatvZ79qI',
+            libraries: 'places' // This is required if you use the Autocomplete plugin
+            // OR: libraries: 'places,drawing'
+            // OR: libraries: 'places,drawing,visualization'
+            // (as you require)
+        }
+    })
 
     export default {
 
@@ -276,7 +294,7 @@
                 return canvas.toDataURL()
             },
             createNewListPlace: function () {
-                this.travelData.places.push({
+                const newItemIndex = this.travelData.places.push({
                     id: '',
                     name: '',
                     description: '',
@@ -298,6 +316,14 @@
                     }
                 }
                 this.selectedPlace = undefined
+            },
+            setPlace: function (place) {
+                this.selectedPlace.id = place.name.toLowerCase().replace(/ /g, '')
+                this.selectedPlace.name = place.name
+                this.selectedPlace.coordinates = {
+                    lat: place.geometry.location.lat(),
+                    lng: place.geometry.location.lng()
+                }
             }
         }
     }
@@ -307,7 +333,7 @@
 
 .photoDrop {
   display: flex;
-  height: 10em;
+  height: 14em;
   padding-top: 1em;
   border-radius: 40px;
 }
@@ -325,7 +351,7 @@
   color: rgba(0, 0, 0, 0.2);
   transition: 0.4s background;
   border-radius: 40px;
-  border: 0.3em dashed white;
+  /* border: 0.3em dashed white; */
 }
 
 .photoDropInputWrapper:hover {
@@ -446,35 +472,12 @@ h3 {
     /* background-color: #efbfa3; */
     border-left: 1px solid #292b2c;
     border-right: 1px solid #292b2c;
+    overflow-y: auto;
+    padding-bottom: 1em;
 }
 .placePhotosPanel {
     /* background-color: #cdbded; */
     position: relative;
-}
-
-.photoDropOff {
-    position: absolute;
-    bottom: 1em;
-    right: 0;
-
-    height: 12em;
-    width: calc(100% - 2em);
-    margin-right: 1em;
-
-    background-color: rgba(0, 0, 0, 0.2);
-    border: 4px dashed black;
-    border-radius: 30px;
-
-    padding: 1em;
-
-    line-height: 10em;
-    text-align: center;
-}
-
-.photoDropOffText {
-    display: inline-block;
-    vertical-align: middle;
-    line-height: 35px;
 }
 
 </style>
