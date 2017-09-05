@@ -43,7 +43,7 @@
 
                 <div  class="placeListWrapper">
                     <div class="list-group">
-                        <draggable id="draggablePlaceList" v-model="travelData.places" @start="drag=true" @end="drag=false">
+                        <draggable id="draggablePlaceList" v-model="travelData.places" @end="placeListDragEnd">
                             <div v-bind:ref="'listItem' + index" v-on:click="listPlaceClicked(place, index)" v-bind:key="index" v-for="(place, index) in travelData.places" class="list-group-item list-group-item-action flex-column align-items-start placeListItem">
                                 <div class="d-flex w-100 justify-content-between">
                                     <h5 class="mb-1">{{ place.name }}</h5>
@@ -94,9 +94,11 @@
                     <div class="form-group">
                         <label for="gmapsAutoComplete"><b>Autocomplete via Google Maps</b></label>
                         <gmap-autocomplete
+                            ref="gmapsAutoComplete"
                             id="gmapsAutoComplete"
                             class="form-control"
                             @place_changed="setPlace"
+                            placeholder="Enter place / address"
                         >
                         </gmap-autocomplete>
                         <small id="emailHelp" class="form-text text-muted">Type in the place and Google Maps will try to fill in as much information as possible automatically!</small>
@@ -200,12 +202,11 @@
         },
         methods: {
             saveButtonClick: function () {
-                // const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.travelData, null, 4))
-                // const dlAnchorElem = document.getElementById('downloadAnchorElem')
-                // dlAnchorElem.setAttribute('href', dataStr)
-                // dlAnchorElem.setAttribute('download', 'travelData.json')
-                // dlAnchorElem.click()
-                debugger
+                const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.travelData, null, 4))
+                const dlAnchorElem = document.getElementById('downloadAnchorElem')
+                dlAnchorElem.setAttribute('href', dataStr)
+                dlAnchorElem.setAttribute('download', 'travelData.json')
+                dlAnchorElem.click()
             },
             loadFile: function () {
                 let file
@@ -240,6 +241,10 @@
             listPlaceClicked: function (place, index) {
                 this.selectedPlace = place
                 this.handlePlaceListSelection(index)
+
+                if (this.$refs.gmapsAutoComplete) {
+                    this.$refs.gmapsAutoComplete.$el.value = ''
+                }
             },
             deletePhoto: function (index) {
                 this.selectedPlace.photos.splice(index, 1)
@@ -306,14 +311,17 @@
                 this.$nextTick(function () {
                     this.handlePlaceListSelection(newItemIndex)
 
-                    this.$refs['listItem' + newItemIndex][0].click()
+                    this.clickOnListItemByIndex(newItemIndex)
                 })
+            },
+            clickOnListItemByIndex: function (index) {
+                this.$refs['listItem' + index][0].click()
             },
             handlePlaceListSelection: function (selectedIndex) {
                 this.$refs['listItem' + selectedIndex][0].classList.add('active')
 
                 for (const ref in this.$refs) {
-                    if (ref.indexOf('listItem') !== -1 && ref !== 'listItem' + selectedIndex) {
+                    if (ref.includes('listItem') && ref !== 'listItem' + selectedIndex) {
                         if (this.$refs[ref].length > 0) {
                             this.$refs[ref][0].classList.remove('active')
                         }
@@ -349,6 +357,10 @@
                     lat: place.geometry.location.lat(),
                     lng: place.geometry.location.lng()
                 }
+            },
+            placeListDragEnd: function (evt) {
+                this.handlePlaceListSelection(evt.newIndex)
+                this.clickOnListItemByIndex(evt.newIndex)
             }
         }
     }
