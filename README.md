@@ -2,6 +2,11 @@
 
 > Travelmap Data Generator
 
+Use the travelmap-datagenerator to easily create / edit travelData.json files to be read in the [australia-travelmap](https://github.com/verfehlix/australia-travelmap/) tool!
+
+![generator](https://user-images.githubusercontent.com/7032914/30646464-5f0a805c-9e19-11e7-82e6-dc782b180b31.PNG)
+
+
 ## Build Setup
 
 ``` bash
